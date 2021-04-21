@@ -12,4 +12,3 @@ def getDataFromWhatWeb(url, cookie):
         return True
     else:
         return False
-

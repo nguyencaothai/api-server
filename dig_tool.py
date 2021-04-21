@@ -13,6 +13,7 @@ def getDataFromDig(url):
     for record in records:
         tmp = []
         contents = subprocess.run(['dig',url,record,'+noall','+answer'],capture_output=True)
+
         if (contents.returncode != 1):
             for content in contents.stdout.decode('UTF-8').strip().split('\n'):
                 content = content.replace('\t',' ').strip()
@@ -21,4 +22,5 @@ def getDataFromDig(url):
             results[record] = tmp
         else:
             results[record] = []
+            
     return results

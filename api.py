@@ -54,29 +54,41 @@ def whatweb_api():
            
         results = getDataFromWhatWeb(request.args['url'], cookie)
 
+        contents = {}
+        contents['technologies'] = []
+
         if (results):
+
             with open('whatweb_results.xml', 'r') as f:
                 data = xmltodict.parse(f.read())
-                contents = {}
-                contents['technologies'] = []
                 
-                # Delete key:value which un-needed
-                try:
-                    # In case having only one target
-                    for i in range(0, len(data['log']['target'])):
-                        # data['log']['target'][i]['technologies'] = data['log']['target'][i].pop('plugin')
-                        contents['technologies'] = contents['technologies'] + data['log']['target'][i]['plugin']
-                    # Remove duplicate technologies
-                    contents['technologies'] = list({frozenset(item.items()): item for item in contents['technologies']}.values())
+                # In case wrong URL or nothing return
+                if (data['log'] == None):
                     return jsonify(contents)
+                else:
 
-                except:
+                    # Delete key:value which un-needed
+                    try:
+                        # In case having many targets
+                        for i in range(0, len(data['log']['target'])):
+                            contents['technologies'] = contents['technologies'] + data['log']['target'][i]['plugin']
 
-                    # In case having many targets
-                    contents['technologies'] = data['log']['target']['plugin']
-                    return jsonify(contents)
+                        # Remove duplicate technologies
+                        res_list = []
+                        for i in range(len(contents['technologies'])):
+                            if contents['technologies'][i] not in contents['technologies'][i + 1:]:
+                                res_list.append(contents['technologies'][i])
+                        
+                        # Assign res_list back again to contents
+                        contents['technologies'] = res_list
+                        return jsonify(contents)
+
+                    except: 
+                        # In case having only one target
+                        contents['technologies'] = data['log']['target']['plugin']
+                        return jsonify(contents)
         else:
-            return jsonify('Something wrong when running whatweb tool !')
+            return jsonify(contents)
     else:
         return jsonify('Define url parameter')
 
@@ -85,14 +97,17 @@ def webtech_api():
     if 'url' in request.args:
         # Check if URL has http|https
         rightFormat = re.search("^(http|https)://", request.args['url'])
+
+        contents = {}
+        contents['technologies'] = []
+
         if (rightFormat):
             results = getDataFromWebTech(request.args['url'])
-
             if (results != "Connection Error"):
-                results['technologies'] = results.pop('tech')
-                return jsonify(results)
+                contents['technologies'] = results.pop('tech')
+                return jsonify(contents)
             else:
-                return jsonify("Something wrong when running webtech tool !")
+                return jsonify(contents)
         else:
             return jsonify("Please add 'http' or 'https' to url parameter")
     else:
@@ -103,13 +118,18 @@ def webtech_api():
 @app.route('/api/v1/enumeration/sublist3r', methods=['GET'])
 def sublist3r_api():
     if 'url' in request.args:
+
+        results = {}
+        results['subdomains'] = []
+
         subdomains = getDataFromSublist3r(request.args['url'])
+
         if (len(subdomains) != 0) :
             results = {}
             results['subdomains'] = list(subdomains)
             return jsonify(results)
         else:
-            return jsonify('No results found')
+            return jsonify(results)
     else:
         return jsonify('Define url parameter')
 
@@ -134,10 +154,14 @@ def gobuster_api():
         if (rightFormat):
             results_dirs = getDirsFromGobuster(request.args['url'], cookie)
             results_files = getFilesFromGobuster(request.args['url'], cookie)
+
             results = {}
+            results['files'] = []
+            results['directories'] = []
 
             if (results_dirs == 'wrong URL' and results_files == 'wrong URL'):
-                return jsonify('Wrong URL')
+                return jsonify(results)
+
             else:
                 if (results_dirs != 'wrong URL'):
                     data = []
@@ -188,32 +212,37 @@ def dig_api():
 def nmap_api():
     if 'url' in request.args:
         results = getDataFromNmap(request.args['url'])
+
+        contents = {}
+
         if (results != "Can not get data from nmap"):
             with open('nmap_results.xml','r') as f:
                 # Load to dictionary again for post-processing
                 contents = json.loads(json.dumps(xmltodict.parse(f.read()),indent=4))
+                try:
+                    selectedKeys = []
 
-                selectedKeys = []
+                    for key in contents['nmaprun'].keys():
+                        if key != 'host':
+                            selectedKeys.append(key)
 
-                for key in contents['nmaprun'].keys():
-                    if key != 'host':
-                        selectedKeys.append(key)
+                    for key in selectedKeys:
+                        if key == 'host':
+                            break
+                        else:
+                            contents['nmaprun'].pop(key)
 
-                for key in selectedKeys:
-                    if key == 'host':
-                        break
-                    else:
-                        contents['nmaprun'].pop(key)
+                    # Delete un-needed keys
+                    contents['nmaprun']['host'].pop('@endtime')
+                    contents['nmaprun']['host'].pop('@starttime')    
+                    contents['nmaprun']['host'].pop('status')       
+                    contents['nmaprun']['host'].pop('times')    
 
-                # Delete un-needed keys
-                contents['nmaprun']['host'].pop('@endtime')
-                contents['nmaprun']['host'].pop('@starttime')    
-                contents['nmaprun']['host'].pop('status')       
-                contents['nmaprun']['host'].pop('times')       
-
-                return jsonify(contents)
+                    return jsonify(contents)
+                except:
+                    return jsonify({})
         else:
-            return jsonify("Something wrong when running nmap tool !")
+            return jsonify(contents)
     else:
         return jsonify('Define url parameter')
 
@@ -223,12 +252,17 @@ def nmap_api():
 def wafw00f_api():
     if 'url' in request.args:
         results = getDataFromWafw00f(request.args['url'])
+
+        contents = {}
+        contents['wafs'] = []
+
         if (results):
             with open('wafw00f.json','r') as f:
-                contents = json.loads(f.read())
+                tmp = json.loads(f.read())
+                contents['wafs'] = tmp
                 return jsonify(contents)
         else:
-            return jsonify('Something wrong when running wafw00f tool !')
+            return jsonify(contents)
     else:
         return jsonify('Define url parameter') 
 
@@ -240,6 +274,8 @@ def wpscan_api():
 
         #Check whether url parameter in right format
         rightFormat = re.search("^(http|https)://", request.args['url'])
+
+        contents = {}
         
         if (rightFormat):
 
@@ -256,7 +292,7 @@ def wpscan_api():
                     contents = json.loads(f.read())
                     return jsonify(contents)
             else:
-                return jsonify('Something wrong when running wpscan tool !')
+                return jsonify(contents)
         else:
             return jsonify("Please add 'http' or 'https' to url parameter")
     else:
@@ -265,12 +301,19 @@ def wpscan_api():
 @app.route('/api/v1/enumeration/droopescan', methods=['GET'])
 def droopescan_api():
     if 'url' in request.args:
+
         results = getDataFromDroopescan(request.args['url'])
+        
+        contents = {}
+
         if (results != "Can not get data from droopescan"):
-            contents = results.decode('utf-8')
-            return jsonify(json.loads(contents))
+            try:
+                contents = results.decode('utf-8')
+                return jsonify(json.loads(contents))
+            except:
+                return jsonify({})
         else:
-            return jsonify('Something wrong when running droopscan tool !')
+            return jsonify(contents)
     else:
         return jsonify('Define url paramter')
 
@@ -283,6 +326,9 @@ def searchsploit_api():
 
     if 'pattern' in request.args:
         results = getDataFromSearchsploit(request.args['pattern'])
+        contents = {}
+        contents['RESULTS_EXPLOIT'] = []
+
         if (results):
             with open('searchsploit_results.json', 'r') as f:
                 contents = json.loads(f.read())
@@ -301,7 +347,7 @@ def searchsploit_api():
 
                 return jsonify(contents)
         else:
-            return jsonify("Something wrong when running searchsploit tool !")
+            return jsonify(jsonify)
     else:
         return jsonify('Define url paramter')
     
@@ -315,6 +361,9 @@ def update_tool():
 def nikto_api():
     if 'url' in request.args:
         rightFormat = re.search("^(http|https)://", request.args['url'])
+
+        contents = {}
+
         if (rightFormat):
             results = getDataFromNikto(request.args['url'])
             if (results):
@@ -322,7 +371,7 @@ def nikto_api():
                     contents = json.loads(f.read()[::-1].replace(',','',2)[::-1])
                     return jsonify(contents)
             else:
-                return jsonify("Something wrong when running nikto tool !")
+                return jsonify(contents)
         else:
             return jsonify("Please add 'http' or 'https' to url parameter")
     else:

@@ -10,8 +10,11 @@ def getDataFromNmap(url):
     url = url[1: len(url)-1] if (url[0] == '.' and url[len(url)-1] == '.') else url[1:] if (url[0] == '.') else url[:len(url)-1] if (url[len(url)-1] == '.') else url
 
     # url = url.split('/')[2].replace('/','')
-    ip = socket.gethostbyname(url)
-
+    try:
+        ip = socket.gethostbyname(url)
+    except:
+        return "Can not get data from nmap"
+        
     #Run nmap with related ip
     results = subprocess.run(['nmap','-A','-sV','-T4','-oX','nmap_results.xml',ip], capture_output=True)
 

@@ -6,5 +6,5 @@ def getDataFromWebTech(url):
     try:
         report = wt.start_from_url(url)
         return report
-    except webtech.utils.ConnectionException:
+    except:
         return ("Connection Error")
