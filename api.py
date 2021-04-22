@@ -213,36 +213,16 @@ def nmap_api():
     if 'url' in request.args:
         results = getDataFromNmap(request.args['url'])
 
-        contents = {}
+        contents = ""
 
         if (results != "Can not get data from nmap"):
-            with open('nmap_results.xml','r') as f:
+            with open('nmap_results.txt','r') as f:
                 # Load to dictionary again for post-processing
-                contents = json.loads(json.dumps(xmltodict.parse(f.read()),indent=4))
-                try:
-                    selectedKeys = []
+                contents = f.read()   
 
-                    for key in contents['nmaprun'].keys():
-                        if key != 'host':
-                            selectedKeys.append(key)
-
-                    for key in selectedKeys:
-                        if key == 'host':
-                            break
-                        else:
-                            contents['nmaprun'].pop(key)
-
-                    # Delete un-needed keys
-                    contents['nmaprun']['host'].pop('@endtime')
-                    contents['nmaprun']['host'].pop('@starttime')    
-                    contents['nmaprun']['host'].pop('status')       
-                    contents['nmaprun']['host'].pop('times')    
-
-                    return jsonify(contents)
-                except:
-                    return jsonify({})
+                return contents.replace("\n", "</br>")
         else:
-            return jsonify(contents)
+            return contents
     else:
         return jsonify('Define url parameter')
 
