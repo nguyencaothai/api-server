@@ -1,6 +1,6 @@
 import flask
 from flask import Response, request, jsonify
-import re
+import re, os
 import json, xmltodict
 
 # local_modules
@@ -220,7 +220,7 @@ def nmap_api():
                 # Load to dictionary again for post-processing
                 contents = f.read()   
 
-                return contents.replace("\n", "</br>")
+                return contents
         else:
             return contents
     else:
@@ -297,6 +297,34 @@ def droopescan_api():
     else:
         return jsonify('Define url paramter')
 
+@app.route('/api/v1/enumeration/joomscan', methods=['GET'])
+def joomscan_api():
+    if 'url' in request.args:
+
+        results = getDataFromJoomscan(request.args['url'])
+
+        contents = ""
+
+        if (results):
+
+            # Get path of reports
+            path = '/root/python_tool/joomscan/reports/'
+            reportFolder = os.listdir(path)[0]
+            reportPath = os.path.join(path, reportFolder)
+
+            # Read contents in report with extension is txt
+            for reportFile in os.listdir(reportPath):
+                if re.search("(.txt)$", reportFile):
+
+                    with open(os.path.join(reportPath, reportFile), 'r') as f:
+                        contents = f.read()
+                        return contents
+        else:
+            return contents
+    
+    else:
+        return jsonify('Define url paramter')
+
 
 # Search exploit from ExploitDB
 @app.route('/api/v1/enumeration/searchsploit', methods=['GET'])
@@ -331,11 +359,6 @@ def searchsploit_api():
     else:
         return jsonify('Define url paramter')
     
-@app.route('/api/v1/enumeration/searchsploit/update', methods=['GET'])
-def update_tool():
-    return None
-
-
 # Web scanning with Nikto      
 @app.route('/api/v1/enumeration/nikto', methods=['GET'])  
 def nikto_api():
