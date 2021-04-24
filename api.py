@@ -201,6 +201,7 @@ def dig_api():
     if 'url' in request.args:
 
         contents = getDataFromDig(request.args['url'])
+        # return jsonify(contents)
         return jsonify(contents)
 
     else:
