@@ -35,6 +35,7 @@ from joomscan_tool.joomscan_tool import getDataFromJoomscan
 
 # Modules for Exploit DB
 from searchsploit_tool import getDataFromSearchsploit
+from vulnsFind_tool import getVulnsFromExpoitDB
 
 # Modules Web scanning with Nikto 
 from nikto_tool import getDataFromNikto
@@ -56,6 +57,7 @@ def whatweb_api():
 
         contents = {}
         contents['technologies'] = []
+        contents['vulns'] = []
 
         if (results):
 
@@ -80,12 +82,15 @@ def whatweb_api():
                                 res_list.append(contents['technologies'][i])
                         
                         # Assign res_list back again to contents
-                        contents['technologies'] = res_list
+                        # Delete element which is not-needed like Title, Country
+                        contents['technologies'] = list(filter(lambda element: element['name'] != 'Title' and element['name'] != 'Country' and element['name'] != 'IP', res_list))
+                        contents['vulns'] = getVulnsFromExpoitDB('whatweb', contents['technologies'])
                         return jsonify(contents)
 
                     except: 
                         # In case having only one target
-                        contents['technologies'] = data['log']['target']['plugin']
+                        contents['technologies'] = list(filter(lambda element: element['name'] != 'Title' and element['name'] != 'Country' and element['name'] != 'IP', data['log']['target']['plugin']))
+                        contents['vulns'] = getVulnsFromExpoitDB('whatweb', contents['technologies'])
                         return jsonify(contents)
         else:
             return jsonify(contents)
@@ -100,11 +105,16 @@ def webtech_api():
 
         contents = {}
         contents['technologies'] = []
+        contents['vulns'] = []
 
         if (rightFormat):
             results = getDataFromWebTech(request.args['url'])
             if (results != "Connection Error"):
+
+                # Remove 'tech' key and replace by 'technologies'
                 contents['technologies'] = results.pop('tech')
+                contents['vulns'] = getVulnsFromExpoitDB('webtech', contents['technologies'])
+
                 return jsonify(contents)
             else:
                 return jsonify(contents)
