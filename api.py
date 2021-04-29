@@ -2,6 +2,10 @@ import flask
 from flask import Response, request, jsonify
 import re, os
 import json, xmltodict
+import threading
+
+# Update searchsploit tool
+from searchsploitUpdate import update
 
 # local_modules
 
@@ -391,4 +395,7 @@ def nikto_api():
     else:
         return jsonify('Define url paramter')
 
-app.run(host='0.0.0.0', port=5000)
+
+if __name__ == "__main__":
+    threading.Thread(target=update, args=()).start()
+    app.run(host='0.0.0.0', port=5000)
