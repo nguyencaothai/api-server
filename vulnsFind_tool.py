@@ -1,6 +1,7 @@
 import subprocess
 import requests
 import json
+import re
 
 def requestToExploitDB(patterns):
     response = {'data':[]}
@@ -34,6 +35,18 @@ def getVulnsForWhatWeb(technologies):
             continue
     return vulns
 
+def getVulnsForNmap():
+    vulns = []
+    results = subprocess.run(['searchsploit','-json','--colour','--nmap','nmap_results_xml'], capture_output=True)
+    if (results.returncode != 1):
+        results = results.stdout.decode('utf-8').replace('\n\n\n','\n').replace('\n\t\t','').replace('\n\t','').replace('\t','')
+        results = re.sub(r']\n}',']}', results)
+        results = results.split('\n')
+        for index in range(len(results) - 1):
+            result = json.loads(results[index])
+            vulns = vulns + result['RESULTS_EXPLOIT']
+    return vulns
+
 def getVulnsFromExpoitDB(nameOfTool, technologies):
 
     # If tool is whatweb
@@ -44,4 +57,8 @@ def getVulnsFromExpoitDB(nameOfTool, technologies):
     # If tool is webtech
     elif (nameOfTool == 'webtech'):
         vulns = getVulnsForWebTech(technologies)
+        return vulns
+
+    elif (nameOfTool == 'nmap'):
+        vulns = getVulnsForNmap()
         return vulns

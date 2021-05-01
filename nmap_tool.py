@@ -16,7 +16,7 @@ def getDataFromNmap(url):
         return "Can not get data from nmap"
         
     #Run nmap with related ip
-    results = subprocess.run(['nmap','-A','-sV','-T4','-oN','nmap_results.txt','--script','vuln',ip], capture_output=True)
+    results = subprocess.run(['nmap','-A','-sV','-T4','-oN','nmap_results.txt','--script','vuln', '-oX','nmap_results_xml',ip], capture_output=True)
 
     if (results.returncode != 1):
         return (results.stdout)

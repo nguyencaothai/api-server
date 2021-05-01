@@ -1,5 +1,6 @@
 import flask
 from flask import Response, request, jsonify
+import xml.etree.ElementTree as ET
 import re, os
 import json, xmltodict
 import threading
@@ -228,13 +229,15 @@ def nmap_api():
     if 'url' in request.args:
         results = getDataFromNmap(request.args['url'])
 
-        contents = ""
+        contents = {}
+        contents['nmap'] = ''
+        contents['vulns'] = []
 
         if (results != "Can not get data from nmap"):
             with open('nmap_results.txt','r') as f:
                 # Load to dictionary again for post-processing
-                contents = f.read()   
-
+                contents['nmap'] = f.read()   
+                contents['vulns'] = getVulnsFromExpoitDB('nmap',[])
                 return contents
         else:
             return contents
