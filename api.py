@@ -25,6 +25,7 @@ from whois_tool import getDataFromWhois
 
 # Modules which related to DNS
 from dig_tool import getDataFromDig
+from fierce_tool import getDataFromFierce
 
 # Modules for Server scanning
 from nmap_tool import getDataFromNmap
@@ -220,7 +221,20 @@ def dig_api():
         return jsonify(contents)
 
     else:
-        return jsonify('Please fill in a specific url')
+        return jsonify('Define url parameter')
+
+@app.route('/api/v1/enumeration/fierce', methods=['GET'])
+def fierce_api():
+
+    if 'url' in request.args:
+
+        contents = getDataFromFierce(request.args['url'])
+        with open('/root/python_tool/fierce/fierce_results.txt','r') as f:
+            return jsonify(f.read())
+
+    else:
+        return jsonify('Define url parameter')
+
 
 
 # Server information
