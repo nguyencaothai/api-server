@@ -229,8 +229,11 @@ def fierce_api():
     if 'url' in request.args:
 
         contents = getDataFromFierce(request.args['url'])
-        with open('/root/python_tool/fierce/fierce_results.txt','r') as f:
-            return jsonify(f.read())
+        try:
+            with open('/root/python_tool/fierce/fierce_results.txt','r') as f:
+                return jsonify(f.read())
+        except:
+            return jsonify('')
 
     else:
         return jsonify('Define url parameter')
