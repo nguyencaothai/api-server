@@ -305,8 +305,10 @@ def wpscan_api():
             if (results):
                 with open('wpscan.json', 'r') as f:
                     contents = json.loads(f.read())
+                    contents['vulns'] = getVulnsFromExpoitDB('wpscan', contents)
                     return jsonify(contents)
             else:
+                contents['vulns'] = []
                 return jsonify(contents)
         else:
             return jsonify("Please add 'http' or 'https' to url parameter")
@@ -390,7 +392,7 @@ def searchsploit_api():
 
                 return jsonify(contents)
         else:
-            return jsonify(jsonify)
+            return jsonify(contents)
     else:
         return jsonify('Define url paramter')
     

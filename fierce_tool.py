@@ -1,8 +1,12 @@
 import subprocess
 import sys
+from tldextract import extract
 
 def getDataFromFierce(url):
 
+    tsd, td, tsu = extract(url)
+    url = td + '.' + tsu
+    
     sys.path.append('/root/python_tool/fierce/')
 
     subprocess.run(['rm','fierce_results.txt'], cwd='/root/python_tool/fierce')

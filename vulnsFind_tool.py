@@ -2,7 +2,9 @@ import subprocess
 import requests
 import json
 import re
+from searchsploit_tool import getDataFromSearchsploit
 
+# Request to exploit-db.com
 def requestToExploitDB(patterns):
     response = {'data':[]}
 
@@ -11,6 +13,34 @@ def requestToExploitDB(patterns):
         return json.loads(response.text)
     except:
         return response
+
+def requestToLocalExploitDB(patterns):
+
+    path = 'https://www.exploit-db.com/raw/'
+
+    results = getDataFromSearchsploit(patterns)
+    contents = {}
+    contents['RESULTS_EXPLOIT'] = []
+
+    if (results):
+        with open('searchsploit_results.json', 'r') as f:
+            contents = json.loads(f.read())
+
+            # Delete un-needed elements
+            contents.pop('SEARCH')
+            contents.pop('DB_PATH_EXPLOIT')
+            contents.pop('DB_PATH_SHELLCODE')
+            contents.pop('RESULTS_SHELLCODE')
+                
+            for i in range(0, len(contents['RESULTS_EXPLOIT'])):
+                edb_id = contents['RESULTS_EXPLOIT'][i]['EDB-ID']
+                contents['RESULTS_EXPLOIT'][i].pop('EDB-ID')
+                contents['RESULTS_EXPLOIT'][i].pop('Path')
+                contents['RESULTS_EXPLOIT'][i]['URL'] = path + edb_id
+
+            return contents
+    else:
+        return contents
 
 def getVulnsForWebTech(technologies):
     vulns = []
@@ -47,6 +77,48 @@ def getVulnsForNmap():
             vulns = vulns + result['RESULTS_EXPLOIT']
     return vulns
 
+def getVulnsForWpscan(technologies):
+
+    vulns = []
+    patterns = ""
+    # Wordpress has 3 main parts for searching
+    core = []
+    theme = []
+    plugin = []
+
+    # Vulns searching for core
+    if (technologies['version']['number'] != None):
+        patterns = "wordpress" + " " + "core" + " " + technologies['version']['number']
+        results = requestToLocalExploitDB(patterns)
+        vulns = vulns + results['RESULTS_EXPLOIT']
+
+    # Vulns searching for themes
+    if (len(technologies['themes'].keys()) == 0):
+        vulns = vulns + []
+    else:
+        for theme in technologies['themes'].keys():
+            if (technologies['themes'][theme]['version'] == None):
+                patterns = "wordpress theme" + " " + technologies['themes'][theme]['slug']
+            else:
+                patterns = "wordpress theme" + " " + technologies['themes'][theme]['slug'] + " " + technologies['themes'][theme]['version']['number']
+            results = requestToLocalExploitDB(patterns)
+            vulns = vulns + results['RESULTS_EXPLOIT']
+
+    # Vulns searching for plugins
+    if (len(technologies['plugins'].keys()) == 0):
+        vulns = vulns + []
+    else:
+        for plugin in technologies['plugins'].keys():
+            if (technologies['plugins'][plugin]['version'] == None):
+                patterns = "wordpress plugin" + " " + technologies['plugins'][plugin]['slug']
+            else:
+                patterns = "wordpress plugin" + " " + technologies['plugins'][plugin]['slug'] + " " + technologies['plugins'][plugin]['version']['number']
+            results = requestToLocalExploitDB(patterns)
+            vulns = vulns + results['RESULTS_EXPLOIT']
+
+    return vulns
+
+
 def getVulnsFromExpoitDB(nameOfTool, technologies):
 
     # If tool is whatweb
@@ -62,3 +134,8 @@ def getVulnsFromExpoitDB(nameOfTool, technologies):
     elif (nameOfTool == 'nmap'):
         vulns = getVulnsForNmap()
         return vulns
+    
+    elif (nameOfTool == 'wpscan'):
+        vulns = getVulnsForWpscan(technologies)
+        return vulns
+
