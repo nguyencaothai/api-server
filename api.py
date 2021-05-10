@@ -305,7 +305,7 @@ def wpscan_api():
             if (results):
                 with open('wpscan.json', 'r') as f:
                     contents = json.loads(f.read())
-                    contents['vulns'] = getVulnsFromExpoitDB('wpscan', contents)
+                    # contents['vulns'] = getVulnsFromExpoitDB('wpscan', contents)
                     return jsonify(contents)
             else:
                 contents['vulns'] = []

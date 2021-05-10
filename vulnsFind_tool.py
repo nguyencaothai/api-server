@@ -87,34 +87,38 @@ def getVulnsForWpscan(technologies):
     plugin = []
 
     # Vulns searching for core
-    if (technologies['version']['number'] != None):
+    # if (technologies['version']['number'] != None):
+    if ('version' in technologies and 'number' in technologies['version']):
         patterns = "wordpress" + " " + "core" + " " + technologies['version']['number']
         results = requestToLocalExploitDB(patterns)
         vulns = vulns + results['RESULTS_EXPLOIT']
 
     # Vulns searching for themes
-    if (len(technologies['themes'].keys()) == 0):
-        vulns = vulns + []
-    else:
-        for theme in technologies['themes'].keys():
-            if (technologies['themes'][theme]['version'] == None):
-                patterns = "wordpress theme" + " " + technologies['themes'][theme]['slug']
-            else:
-                patterns = "wordpress theme" + " " + technologies['themes'][theme]['slug'] + " " + technologies['themes'][theme]['version']['number']
-            results = requestToLocalExploitDB(patterns)
-            vulns = vulns + results['RESULTS_EXPLOIT']
+    if ('themes' in technologies):
+
+        if (len(technologies['themes'].keys()) == 0):
+            vulns = vulns + []
+        else:
+            for theme in technologies['themes'].keys():
+                if (technologies['themes'][theme]['version'] == None):
+                    patterns = "wordpress theme" + " " + technologies['themes'][theme]['slug']
+                else:
+                    patterns = "wordpress theme" + " " + technologies['themes'][theme]['slug'] + " " + technologies['themes'][theme]['version']['number']
+                results = requestToLocalExploitDB(patterns)
+                vulns = vulns + results['RESULTS_EXPLOIT']
 
     # Vulns searching for plugins
-    if (len(technologies['plugins'].keys()) == 0):
-        vulns = vulns + []
-    else:
-        for plugin in technologies['plugins'].keys():
-            if (technologies['plugins'][plugin]['version'] == None):
-                patterns = "wordpress plugin" + " " + technologies['plugins'][plugin]['slug']
-            else:
-                patterns = "wordpress plugin" + " " + technologies['plugins'][plugin]['slug'] + " " + technologies['plugins'][plugin]['version']['number']
-            results = requestToLocalExploitDB(patterns)
-            vulns = vulns + results['RESULTS_EXPLOIT']
+    if ('plugins' in technologies):
+        if (len(technologies['plugins'].keys()) == 0):
+            vulns = vulns + []
+        else:
+            for plugin in technologies['plugins'].keys():
+                if (technologies['plugins'][plugin]['version'] == None):
+                    patterns = "wordpress plugin" + " " + technologies['plugins'][plugin]['slug']
+                else:
+                    patterns = "wordpress plugin" + " " + technologies['plugins'][plugin]['slug'] + " " + technologies['plugins'][plugin]['version']['number']
+                results = requestToLocalExploitDB(patterns)
+                vulns = vulns + results['RESULTS_EXPLOIT']
 
     return vulns
 
