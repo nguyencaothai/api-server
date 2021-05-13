@@ -3,6 +3,7 @@ import requests
 import json
 import re
 from searchsploit_tool import getDataFromSearchsploit
+from joomscan_tool.parseHTML import parseReportHTML
 
 # Request to exploit-db.com
 def requestToExploitDB(patterns):
@@ -16,8 +17,8 @@ def requestToExploitDB(patterns):
 
 def requestToLocalExploitDB(patterns):
 
+    print(patterns)
     path = 'https://www.exploit-db.com/raw/'
-
     results = getDataFromSearchsploit(patterns)
     contents = {}
     contents['RESULTS_EXPLOIT'] = []
@@ -25,7 +26,6 @@ def requestToLocalExploitDB(patterns):
     if (results):
         with open('searchsploit_results.json', 'r') as f:
             contents = json.loads(f.read())
-
             # Delete un-needed elements
             contents.pop('SEARCH')
             contents.pop('DB_PATH_EXPLOIT')
@@ -37,8 +37,7 @@ def requestToLocalExploitDB(patterns):
                 contents['RESULTS_EXPLOIT'][i].pop('EDB-ID')
                 contents['RESULTS_EXPLOIT'][i].pop('Path')
                 contents['RESULTS_EXPLOIT'][i]['URL'] = path + edb_id
-
-            return contents
+        return contents
     else:
         return contents
 
@@ -122,6 +121,72 @@ def getVulnsForWpscan(technologies):
 
     return vulns
 
+def getVulnsForJoomscan(technologies):
+
+    vulns = []
+
+    # Parse HTML reports to get version and components info
+    versionAndComponentsList = parseReportHTML(technologies)
+    print(versionAndComponentsList)
+    version = versionAndComponentsList['version']
+    components = versionAndComponentsList['components']
+
+    results = requestToLocalExploitDB('joomla ' + version)
+    vulns = vulns + results['RESULTS_EXPLOIT']
+
+    for component in components:
+        results = requestToLocalExploitDB('joomla component ' + component)
+        vulns = vulns + results['RESULTS_EXPLOIT']
+    
+    return vulns
+
+
+def getVulnsForDroopescan(technologies):
+
+    vulns = []
+    patterns = ""
+
+    # Vulns searching for version
+    if ('version' in technologies):
+        if (technologies['version']['is_empty'] == False):
+            if ('cms_name' in technologies):
+                if (technologies['cms_name'] == 'wordpress'):
+                    patterns = 'wordpress core ' + technologies['version']['finds'][0]
+                    results = requestToLocalExploitDB(patterns)
+                    vulns = vulns + results['RESULTS_EXPLOIT']
+                else:
+                    patterns = technologies['cms_name'] + ' ' + technologies['version']['finds'][0]
+                    results = requestToLocalExploitDB(patterns)
+                    vulns = vulns + results['RESULTS_EXPLOIT']
+
+    # Vulns searching for plugin
+    if ('plugins' in technologies):
+        print('get here plugin')
+        if (technologies['plugins']['is_empty'] == False):
+            if ('cms_name' in technologies):
+                if (technologies['cms_name'] == 'wordpress'):
+                    patterns = 'wordpress plugin '
+                else:
+                    patterns = technologies['cms_name'] + ' '
+                for find in technologies['plugins']['finds']:
+                    patterns = patterns + find['name']
+                    results = requestToLocalExploitDB(patterns)
+                    vulns = vulns + results['RESULTS_EXPLOIT']
+    
+    # Vulns searching for theme
+    if ('themes' in technologies):
+        if (technologies['themes']['is_empty'] == False):
+            if ('cms_name' in technologies):
+                if (technologies['cms_name'] == 'wordpress'):
+                    patterns = 'wordpress theme '
+                else:
+                    patterns = technologies['cms_name'] + ' '
+                for find in technologies['themes']['finds']:
+                    patterns = patterns + find['name']
+                    results = requestToLocalExploitDB(patterns)
+                    vulns = vulns + results['RESULTS_EXPLOIT']
+
+    return vulns
 
 def getVulnsFromExpoitDB(nameOfTool, technologies):
 
@@ -141,5 +206,13 @@ def getVulnsFromExpoitDB(nameOfTool, technologies):
     
     elif (nameOfTool == 'wpscan'):
         vulns = getVulnsForWpscan(technologies)
+        return vulns
+
+    elif (nameOfTool == 'joomscan'):
+        vulns = getVulnsForJoomscan(technologies)
+        return vulns
+    
+    elif (nameOfTool == 'droopescan'):
+        vulns = getVulnsForDroopescan(technologies)
         return vulns
 

@@ -37,7 +37,7 @@ from wafw00f_tool import getDataFromWafw00f
 from wpscan_tool import getDataFromWpscan
 from droopescan_tool import getDataFromDroopescan
 from joomscan_tool.joomscan_tool import getDataFromJoomscan
-# from joomscan_tool.parseHTML import getJsonData
+from cmseek_tool import getDataFromCmseek
 
 # Modules for Exploit DB
 from searchsploit_tool import getDataFromSearchsploit
@@ -322,11 +322,15 @@ def droopescan_api():
         results = getDataFromDroopescan(request.args['url'])
         
         contents = {}
+        contents['droopescan'] = {}
+        contents['vulns'] = []
 
         if (results != "Can not get data from droopescan"):
             try:
-                contents = results.decode('utf-8')
-                return jsonify(json.loads(contents))
+                print(results)
+                contents['droopescan'] = json.loads(results.decode('utf-8'))
+                contents['vulns'] = getVulnsFromExpoitDB('droopescan',contents['droopescan'])
+                return contents
             except:
                 return jsonify({})
         else:
@@ -340,28 +344,55 @@ def joomscan_api():
 
         results = getDataFromJoomscan(request.args['url'])
 
-        contents = ""
+        contents = {}
+        contents['joomscan'] = ""
+        contents['vulns'] = []
 
         if (results):
 
             # Get path of reports
             path = '/root/python_tool/joomscan/reports/'
-            reportFolder = os.listdir(path)[0]
-            reportPath = os.path.join(path, reportFolder)
+            try:
+                reportFolder = os.listdir(path)[0]
+                reportPath = os.path.join(path, reportFolder)
+            except:
+                return contents
 
             # Read contents in report with extension is txt
             for reportFile in os.listdir(reportPath):
                 if re.search("(.txt)$", reportFile):
 
                     with open(os.path.join(reportPath, reportFile), 'r') as f:
-                        contents = f.read()
-                        return contents
+                        contents['joomscan'] = f.read()
+                else:
+                    with open(os.path.join(reportPath, reportFile), 'r') as f:
+                       contents['vulns'] = getVulnsFromExpoitDB('joomscan',f.read())    
+
+            return contents
+
         else:
             return contents
     
     else:
         return jsonify('Define url paramter')
 
+@app.route('/api/v1/enumeration/cmseek', methods=['GET'])
+def cmseek_api():
+    if 'url' in request.args:
+        results = getDataFromCmseek(request.args['url'])
+
+        if (results):
+            path = '/root/python_tool/CMSeeK/Result'
+            reportFolder = os.listdir(path)[0]
+            reportPath = os.path.join(path, reportFolder)
+
+            with open(f"{reportPath}/cms.json",'r') as f:
+                contents = json.loads(f.read())
+                return contents
+        else:
+            return contents
+    else:
+        return jsonify('Define url paramter')
 
 # Search exploit from ExploitDB
 @app.route('/api/v1/enumeration/searchsploit', methods=['GET'])
