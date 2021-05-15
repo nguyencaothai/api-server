@@ -440,23 +440,18 @@ def nikto_api():
             if (results):
                 with open('nikto_results.json', 'r') as f:
                     fileContent = f.read()
-                    print(fileContent)
                     try:
                         contents = json.loads(fileContent[::-1].replace(',','',2)[::-1])
-                        print(contents)
                         return jsonify(contents)
                     except:
                         try:
                             contents = json.loads(fileContent[::-1].replace(',','',1).replace('}','',1)[::-1])
-                            print(contents)
                             return jsonify(contents)
                         except:
                             try:
                                 contents = json.loads(fileContent.replace('}','',1))
-                                print(contents)
                                 return jsonify(contents)
                             except:
-                                print(contents)
                                 return jsonify({})           
             else:
                 return jsonify(contents)
