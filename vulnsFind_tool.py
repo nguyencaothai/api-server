@@ -57,9 +57,13 @@ def getVulnsForWhatWeb(technologies):
     vulns = []
     for technology in technologies:
         if ('version' in technology.keys()):
-            patterns = technology['name'] + '%20' + technology['version']
-            results = requestToExploitDB(patterns)
-            vulns = vulns + results['data']
+            try:
+                patterns = technology['name'] + ' ' + technology['version']
+            except:
+                patterns = technology['name'] + ' ' + technology['version'][0]
+
+            results =  requestToLocalExploitDB(patterns)
+            vulns = vulns + results['RESULTS_EXPLOIT']
         else:
             continue
     return vulns
