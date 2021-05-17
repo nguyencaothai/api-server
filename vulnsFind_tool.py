@@ -127,12 +127,13 @@ def getVulnsForJoomscan(technologies):
 
     # Parse HTML reports to get version and components info
     versionAndComponentsList = parseReportHTML(technologies)
-    print(versionAndComponentsList)
+
     version = versionAndComponentsList['version']
     components = versionAndComponentsList['components']
-
-    results = requestToLocalExploitDB('joomla ' + version)
-    vulns = vulns + results['RESULTS_EXPLOIT']
+    
+    if (version != ''):
+        results = requestToLocalExploitDB('joomla ' + version)
+        vulns = vulns + results['RESULTS_EXPLOIT']
 
     for component in components:
         results = requestToLocalExploitDB('joomla component ' + component)
