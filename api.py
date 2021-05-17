@@ -349,7 +349,7 @@ def joomscan_api():
         contents['vulns'] = []
 
         if (results):
-            print("Get here true results")
+            # print("Get here true results")
 
             # Get path of reports
             path = '/root/python_tool/joomscan/reports/'
@@ -372,7 +372,7 @@ def joomscan_api():
             return contents
 
         else:
-            print("Get here false results")
+            # print("Get here false results")
             return contents
     
     else:
