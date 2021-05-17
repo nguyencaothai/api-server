@@ -28,11 +28,11 @@ def parseReportHTML(htmlCode):
 
     return results
 
-path = '/root/python_tool/joomscan/reports/'
-reportFolder = os.listdir(path)[0]
-reportPath = os.path.join(path, reportFolder)
+# path = '/root/python_tool/joomscan/reports/'
+# reportFolder = os.listdir(path)[0]
+# reportPath = os.path.join(path, reportFolder)
 
-for reportFile in os.listdir(reportPath):
-    if re.search("(.html)$", reportFile):
-        with open(os.path.join(reportPath, reportFile), 'r') as f:
-            print(parseReportHTML(f.read()))
+# for reportFile in os.listdir(reportPath):
+#     if re.search("(.html)$", reportFile):
+#         with open(os.path.join(reportPath, reportFile), 'r') as f:
+#             print(parseReportHTML(f.read()))
