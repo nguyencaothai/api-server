@@ -17,8 +17,6 @@ def getDataFromJoomscan(url):
     # Run command
     results = subprocess.run(['perl','joomscan.pl','--url',url,'-ec'], cwd='/root/python_tool/joomscan',capture_output=True)
     if (results.returncode != 1):
-        print(results.stdout)
         return True
     else:
-        print(results.stdout)
         return False

@@ -1,5 +1,4 @@
 import webtech
-import json
 
 def getDataFromWebTech(url):
 
