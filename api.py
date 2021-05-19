@@ -343,6 +343,7 @@ def joomscan_api():
     if 'url' in request.args:
 
         results = getDataFromJoomscan(request.args['url'])
+        print(results)
 
         contents = {}
         contents['joomscan'] = ""

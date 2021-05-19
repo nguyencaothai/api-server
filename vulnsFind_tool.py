@@ -17,7 +17,6 @@ def requestToExploitDB(patterns):
 
 def requestToLocalExploitDB(patterns):
 
-    print(patterns)
     path = 'https://www.exploit-db.com/raw/'
     results = getDataFromSearchsploit(patterns)
     contents = {}
@@ -46,9 +45,9 @@ def getVulnsForWebTech(technologies):
     for technology in technologies:
         if (technology['version'] != None):
             # Build patterns for searching on ExploitDB
-            patterns = technology['name'] + '%20' + technology['version']
-            results = requestToExploitDB(patterns)
-            vulns = vulns + results['data']
+            patterns = technology['name'] + ' ' + technology['version']
+            results = requestToLocalExploitDB(patterns)
+            vulns = vulns + results['RESULTS_EXPLOIT']
         else:
             continue
     return vulns
