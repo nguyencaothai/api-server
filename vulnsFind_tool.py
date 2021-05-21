@@ -22,20 +22,16 @@ def requestToLocalExploitDB(patterns):
     contents = {}
     contents['RESULTS_EXPLOIT'] = []
 
-    if (results):
-        with open('searchsploit_results.json', 'r') as f:
-            contents = json.loads(f.read())
-            # Delete un-needed elements
-            contents.pop('SEARCH')
-            contents.pop('DB_PATH_EXPLOIT')
-            contents.pop('DB_PATH_SHELLCODE')
-            contents.pop('RESULTS_SHELLCODE')
-                
-            for i in range(0, len(contents['RESULTS_EXPLOIT'])):
-                edb_id = contents['RESULTS_EXPLOIT'][i]['EDB-ID']
-                contents['RESULTS_EXPLOIT'][i].pop('EDB-ID')
-                contents['RESULTS_EXPLOIT'][i].pop('Path')
-                contents['RESULTS_EXPLOIT'][i]['URL'] = path + edb_id
+    if (results != "Error"):
+        vulns = []
+        results = results.decode('utf-8').replace('\n\n\n','\n').replace('\n\t\t','').replace('\n\t','').replace('\t','')
+        results = re.sub(r']\n}',']}', results)
+        results = results.split('\n')
+        for index in range(len(results) - 1):
+            result = json.loads(results[index])
+            vulns = vulns + result['RESULTS_EXPLOIT']
+
+        contents['RESULTS_EXPLOIT'] = vulns
         return contents
     else:
         return contents

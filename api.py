@@ -395,39 +395,6 @@ def cmseek_api():
             return contents
     else:
         return jsonify('Define url paramter')
-
-# Search exploit from ExploitDB
-@app.route('/api/v1/enumeration/searchsploit', methods=['GET'])
-def searchsploit_api():
-
-    path = 'https://www.exploit-db.com/raw/'
-
-    if 'pattern' in request.args:
-        results = getDataFromSearchsploit(request.args['pattern'])
-        contents = {}
-        contents['RESULTS_EXPLOIT'] = []
-
-        if (results):
-            with open('searchsploit_results.json', 'r') as f:
-                contents = json.loads(f.read())
-
-                # Delete un-needed elements
-                contents.pop('SEARCH')
-                contents.pop('DB_PATH_EXPLOIT')
-                contents.pop('DB_PATH_SHELLCODE')
-                contents.pop('RESULTS_SHELLCODE')
-                
-                for i in range(0, len(contents['RESULTS_EXPLOIT'])):
-                    edb_id = contents['RESULTS_EXPLOIT'][i]['EDB-ID']
-                    contents['RESULTS_EXPLOIT'][i].pop('EDB-ID')
-                    contents['RESULTS_EXPLOIT'][i].pop('Path')
-                    contents['RESULTS_EXPLOIT'][i]['URL'] = path + edb_id
-
-                return jsonify(contents)
-        else:
-            return jsonify(contents)
-    else:
-        return jsonify('Define url paramter')
     
 # Web scanning with Nikto      
 @app.route('/api/v1/enumeration/nikto', methods=['GET'])  
@@ -459,6 +426,34 @@ def nikto_api():
                 return jsonify(contents)
         else:
             return jsonify("Please add 'http' or 'https' to url parameter")
+    else:
+        return jsonify('Define url paramter')
+
+# Search exploit from ExploitDB
+@app.route('/api/v1/enumeration/searchsploit', methods=['GET'])
+def searchsploit_api():
+
+    path = 'https://www.exploit-db.com/raw/'
+
+    if 'pattern' in request.args:
+        results = getDataFromSearchsploit(request.args['pattern'])
+        contents = {}
+        contents['RESULTS_EXPLOIT'] = []
+
+        if (results != "Error"):
+            vulns = []
+            results = results.decode('utf-8').replace('\n\n\n','\n').replace('\n\t\t','').replace('\n\t','').replace('\t','')
+            results = re.sub(r']\n}',']}', results)
+            results = results.split('\n')
+            for index in range(len(results) - 1):
+                result = json.loads(results[index])
+                vulns = vulns + result['RESULTS_EXPLOIT']
+
+            contents['RESULTS_EXPLOIT'] = vulns
+
+            return jsonify(contents)
+        else:
+            return jsonify(contents)
     else:
         return jsonify('Define url paramter')
 
