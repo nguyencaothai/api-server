@@ -59,7 +59,7 @@ def whatweb_api():
         except:
             cookie = None
            
-        results = getDataFromWhatWeb(request.args['url'], cookie)
+        results = getDataFromWhatWeb(request.args['url'], cookie, request.args['token'])
 
         contents = {}
         contents['technologies'] = []
@@ -67,7 +67,8 @@ def whatweb_api():
 
         if (results):
 
-            with open('whatweb_results.xml', 'r') as f:
+            reportName = 'whatweb_' + request.args['token']
+            with open(reportName, 'r') as f:
                 data = xmltodict.parse(f.read())
                 
                 # In case wrong URL or nothing return
