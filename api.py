@@ -6,45 +6,45 @@ import json, xmltodict
 import threading
 
 # Update searchsploit tool
-from searchsploitUpdate import update
+from searchsploit_tool.searchsploitUpdate import update
+
+# Modules for Exploit DB
+from searchsploit_tool.searchsploit_tool import getDataFromSearchsploit
+from vulnsfind_tool.vulnsfind_tool import getVulnsFromExpoitDB
 
 # local_modules
 
 # Modules for web technologies scanning
-from whatweb_tool import getDataFromWhatWeb
-from webtech_tool import getDataFromWebTech
+from whatweb_tool.whatweb_tool import getDataFromWhatWeb
+from webtech_tool.webtech_tool import getDataFromWebTech
 
 # Modules for subdomains scanning
-from sublist3r_tool import getDataFromSublist3r
+from sublist3r_tool.sublist3r_tool import getDataFromSublist3r
 
 # Modules for directories/files scanning
-from gobuster_tool import getDirsFromGobuster, getFilesFromGobuster
+from gobuster_tool.gobuster_tool import getDirsFromGobuster, getFilesFromGobuster
 
 # Modules for domain information 
-from whois_tool import getDataFromWhois
+from whois_tool.whois_tool import getDataFromWhois
 
 # Modules which related to DNS
-from dig_tool import getDataFromDig
-from fierce_tool import getDataFromFierce
+from dig_tool.dig_tool import getDataFromDig
+from fierce_tool.fierce_tool import getDataFromFierce
 
 # Modules for Server scanning
-from nmap_tool import getDataFromNmap
+from nmap_tool.nmap_tool import getDataFromNmap
 
 # Modules for WAF scanning
-from wafw00f_tool import getDataFromWafw00f
+from wafw00f_tool.wafw00f_tool import getDataFromWafw00f
 
 # Modules for CMS scanning
-from wpscan_tool import getDataFromWpscan
-from droopescan_tool import getDataFromDroopescan
+from wpscan_tool.wpscan_tool import getDataFromWpscan
+from droopescan_tool.droopescan_tool import getDataFromDroopescan
 from joomscan_tool.joomscan_tool import getDataFromJoomscan
-from cmseek_tool import getDataFromCmseek
-
-# Modules for Exploit DB
-from searchsploit_tool import getDataFromSearchsploit
-from vulnsFind_tool import getVulnsFromExpoitDB
+from cmseek_tool.cmseek_tool import getDataFromCmseek
 
 # Modules Web scanning with Nikto 
-from nikto_tool import getDataFromNikto
+from nikto_tool.nikto_tool import getDataFromNikto
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
@@ -67,8 +67,9 @@ def whatweb_api():
 
         if (results):
 
-            reportName = 'whatweb_' + request.args['token']
-            with open(reportName, 'r') as f:
+            reportName = 'whatweb_' + request.args['token'] + '.report'
+            reportPath = os.path.join( '/root/python_tool/whatweb_tool/', reportName)
+            with open(reportPath, 'r') as f:
                 data = xmltodict.parse(f.read())
                 
                 # In case wrong URL or nothing return
@@ -406,9 +407,13 @@ def nikto_api():
         contents = {}
 
         if (rightFormat):
-            results = getDataFromNikto(request.args['url'])
+            results = getDataFromNikto(request.args['url'], request.args['token'])
             if (results):
-                with open('nikto_results.json', 'r') as f:
+
+                reportName = 'nikto_' + request.args['token'] + '.report' 
+                reportPath = os.path.join('/root/python_tool/nikto_tool/', reportName)
+
+                with open(reportPath, 'r') as f:
                     fileContent = f.read()
                     try:
                         contents = json.loads(fileContent[::-1].replace(',','',2)[::-1])
@@ -443,6 +448,7 @@ def searchsploit_api():
 
         if (results != "Error"):
             vulns = []
+            print(results)
             results = results.decode('utf-8').replace('\n\n\n','\n').replace('\n\t\t','').replace('\n\t','').replace('\t','')
             results = re.sub(r']\n}',']}', results)
             results = results.split('\n')
