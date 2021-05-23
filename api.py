@@ -447,16 +447,22 @@ def searchsploit_api():
         contents['RESULTS_EXPLOIT'] = []
 
         if (results != "Error"):
-            vulns = []
-            print(results)
-            results = results.decode('utf-8').replace('\n\n\n','\n').replace('\n\t\t','').replace('\n\t','').replace('\t','')
+            # Process byte array data from tool
+            results = results.decode('UTF-8').replace('\n\n\n','\n').replace('\n\t\t','').replace('\n\t','').replace('\t','')
             results = re.sub(r']\n}',']}', results)
             results = results.split('\n')
-            for index in range(len(results) - 1):
-                result = json.loads(results[index])
-                vulns = vulns + result['RESULTS_EXPLOIT']
 
-            contents['RESULTS_EXPLOIT'] = vulns
+            for index in range(len(results) - 1):
+                try:
+                    result = json.loads(results[index])
+                except:
+                    return contents
+
+                for pos in range(len(result['RESULTS_EXPLOIT'])):
+                    edb_id = result['RESULTS_EXPLOIT'][pos]['EDB-ID']
+                    result['RESULTS_EXPLOIT'][pos]['Path'] = path + edb_id
+                
+                contents['RESULTS_EXPLOIT'] = contents['RESULTS_EXPLOIT'] + result['RESULTS_EXPLOIT']
 
             return jsonify(contents)
         else:

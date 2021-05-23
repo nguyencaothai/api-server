@@ -23,15 +23,22 @@ def requestToLocalExploitDB(patterns):
     contents['RESULTS_EXPLOIT'] = []
 
     if (results != "Error"):
-        vulns = []
+
         results = results.decode('utf-8').replace('\n\n\n','\n').replace('\n\t\t','').replace('\n\t','').replace('\t','')
         results = re.sub(r']\n}',']}', results)
         results = results.split('\n')
-        for index in range(len(results) - 1):
-            result = json.loads(results[index])
-            vulns = vulns + result['RESULTS_EXPLOIT']
 
-        contents['RESULTS_EXPLOIT'] = vulns
+        for index in range(len(results) - 1):
+            try:
+                result = json.loads(results[index])
+            except: 
+                return contents
+
+            for pos in range(len(result['RESULTS_EXPLOIT'])):
+                edb_id = result['RESULTS_EXPLOIT'][pos]['EDB-ID']
+                result['RESULTS_EXPLOIT'][pos]['Path'] = path + edb_id
+            
+            contents['RESULTS_EXPLOIT'] = contents['RESULTS_EXPLOIT'] + result['RESULTS_EXPLOIT']
         return contents
     else:
         return contents
@@ -64,14 +71,27 @@ def getVulnsForWhatWeb(technologies):
     return vulns
 
 def getVulnsForNmap():
+
     vulns = []
-    results = subprocess.run(['searchsploit','-json','--colour','--nmap','nmap_results_xml'], capture_output=True)
+    path = 'https://www.exploit-db.com/raw/'
+
+    results = subprocess.run(['searchsploit','-t','-json','--colour','--nmap','nmap_results_xml'], capture_output=True)
     if (results.returncode != 1):
+
         results = results.stdout.decode('utf-8').replace('\n\n\n','\n').replace('\n\t\t','').replace('\n\t','').replace('\t','')
         results = re.sub(r']\n}',']}', results)
         results = results.split('\n')
+        
         for index in range(len(results) - 1):
-            result = json.loads(results[index])
+            try:
+                result = json.loads(results[index])
+            except:
+                return vulns
+
+            for pos in range(len(result['RESULTS_EXPLOIT'])):
+                edb_id = result['RESULTS_EXPLOIT'][pos]['EDB-ID']
+                result['RESULTS_EXPLOIT'][pos]['Path'] = path + edb_id
+            
             vulns = vulns + result['RESULTS_EXPLOIT']
     return vulns
 
