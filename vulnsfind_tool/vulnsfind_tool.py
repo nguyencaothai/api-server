@@ -70,12 +70,12 @@ def getVulnsForWhatWeb(technologies):
             continue
     return vulns
 
-def getVulnsForNmap():
+def getVulnsForNmap(reportPathXML):
 
     vulns = []
     path = 'https://www.exploit-db.com/raw/'
 
-    results = subprocess.run(['searchsploit','-t','-json','--colour','--nmap','nmap_results_xml'], capture_output=True)
+    results = subprocess.run(['searchsploit','-t','-json','--colour','--nmap',reportPathXML], capture_output=True)
     if (results.returncode != 1):
 
         results = results.stdout.decode('utf-8').replace('\n\n\n','\n').replace('\n\t\t','').replace('\n\t','').replace('\t','')
@@ -220,8 +220,8 @@ def getVulnsFromExpoitDB(nameOfTool, technologies):
         vulns = getVulnsForWebTech(technologies)
         return vulns
 
-    elif (nameOfTool == 'nmap'):
-        vulns = getVulnsForNmap()
+    elif ('nmap_' in nameOfTool):
+        vulns = getVulnsForNmap(nameOfTool)
         return vulns
     
     elif (nameOfTool == 'wpscan'):

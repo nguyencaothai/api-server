@@ -69,6 +69,7 @@ def whatweb_api():
 
             reportName = 'whatweb_' + request.args['token'] + '.report'
             reportPath = os.path.join( '/root/python_tool/whatweb_tool/', reportName)
+            
             with open(reportPath, 'r') as f:
                 data = xmltodict.parse(f.read())
                 
@@ -230,9 +231,13 @@ def fierce_api():
 
     if 'url' in request.args:
 
-        contents = getDataFromFierce(request.args['url'])
+        contents = getDataFromFierce(request.args['url'], request.args['token'])
+
+        reportName = 'fierce_' + request.args['token'] + '.report'
+        reportPath = os.path.join('/root/python_tool/fierce', reportName)
+
         try:
-            with open('/root/python_tool/fierce/fierce_results.txt','r') as f:
+            with open(reportPath,'r') as f:
                 return jsonify(f.read())
         except:
             return jsonify('')
@@ -246,17 +251,23 @@ def fierce_api():
 @app.route('/api/v1/enumeration/nmap', methods=['GET'])
 def nmap_api():
     if 'url' in request.args:
-        results = getDataFromNmap(request.args['url'])
+        results = getDataFromNmap(request.args['url'], request.args['token'])
 
         contents = {}
         contents['nmap'] = ''
         contents['vulns'] = []
 
+        reportNameTXT = 'nmap_' + request.args['token'] + '.report_1'
+        reportNameXML = 'nmap_' + request.args['token'] + '.report_2'
+
+        reportPathTXT = os.path.join('/root/python_tool/nmap_tool', reportNameTXT)
+        reportPathXML = os.path.join('/root/python_tool/nmap_tool', reportNameXML)
+
         if (results != "Can not get data from nmap"):
-            with open('nmap_results.txt','r') as f:
+            with open(reportPathTXT,'r') as f:
                 # Load to dictionary again for post-processing
                 contents['nmap'] = f.read()   
-                contents['vulns'] = getVulnsFromExpoitDB('nmap',[])
+                contents['vulns'] = getVulnsFromExpoitDB(reportPathXML,[])
                 return contents
         else:
             return contents
@@ -268,13 +279,17 @@ def nmap_api():
 @app.route('/api/v1/enumeration/wafw00f', methods=['GET'])
 def wafw00f_api():
     if 'url' in request.args:
-        results = getDataFromWafw00f(request.args['url'])
+        results = getDataFromWafw00f(request.args['url'], request.args['token'])
 
         contents = {}
         contents['wafs'] = []
 
         if (results):
-            with open('wafw00f.json','r') as f:
+
+            reportName = 'wafw00f_' + request.args['token'] + '.report'
+            reportPath = os.path.join('/root/python_tool/wafw00f_tool', reportName)
+
+            with open(reportPath,'r') as f:
                 tmp = json.loads(f.read())
                 contents['wafs'] = tmp
                 return jsonify(contents)
@@ -302,10 +317,13 @@ def wpscan_api():
             except:
                 cookie = None
 
-            results = getDataFromWpscan(request.args['url'], cookie)
+            results = getDataFromWpscan(request.args['url'], cookie, request.args['token'])
+
+            reportName = 'wpscan_' + request.args['token'] + '.report'
+            reportPath = os.path.join('/root/python_tool/wpscan_tool', reportName)
 
             if (results):
-                with open('wpscan.json', 'r') as f:
+                with open(reportPath, 'r') as f:
                     contents = json.loads(f.read())
                     contents['vulns'] = getVulnsFromExpoitDB('wpscan', contents)
                     return jsonify(contents)
@@ -329,7 +347,6 @@ def droopescan_api():
 
         if (results != "Can not get data from droopescan"):
             try:
-                print(results)
                 contents['droopescan'] = json.loads(results.decode('utf-8'))
                 contents['vulns'] = getVulnsFromExpoitDB('droopescan',contents['droopescan'])
                 return contents
