@@ -106,10 +106,11 @@ def getVulnsForWpscan(technologies):
 
     # Vulns searching for core
     # if (technologies['version']['number'] != None):
-    if ('version' in technologies and 'number' in technologies['version']):
-        patterns = "wordpress" + " " + "core" + " " + technologies['version']['number']
-        results = requestToLocalExploitDB(patterns)
-        vulns = vulns + results['RESULTS_EXPLOIT']
+    if ('version' in technologies):
+        if ('number' in technologies['version']):
+            patterns = "wordpress" + " " + "core" + " " + technologies['version']['number']
+            results = requestToLocalExploitDB(patterns)
+            vulns = vulns + results['RESULTS_EXPLOIT']
 
     # Vulns searching for themes
     if ('themes' in technologies):
