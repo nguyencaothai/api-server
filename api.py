@@ -4,6 +4,7 @@ import xml.etree.ElementTree as ET
 import re, os
 import json, xmltodict
 import threading
+import urllib.request
 
 # Update searchsploit tool
 from searchsploit_tool.searchsploitUpdate import update
@@ -49,6 +50,18 @@ from nikto_tool.nikto_tool import getDataFromNikto
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
 
+# Check whether url is available
+@app.route('/api/v1/enumeration/check_available', methods=['GET'])
+def check_available():
+    try:
+        status_code = urllib.request.urlopen(request.args['url'], timeout=60).getcode()
+        if (status_code == 200):
+            return jsonify('available')
+        else:
+            return jsonify('unavailable')
+    except:
+        return jsonify('unavailable')
+    
 # Web technologies scanning
 @app.route('/api/v1/enumeration/whatweb', methods=['GET'])
 def whatweb_api():
@@ -77,7 +90,6 @@ def whatweb_api():
                 if (data['log'] == None):
                     return jsonify(contents)
                 else:
-
                     # Delete key:value which un-needed
                     try:
                         # In case having many targets
@@ -246,7 +258,6 @@ def fierce_api():
         return jsonify('Define url parameter')
 
 
-
 # Server information
 @app.route('/api/v1/enumeration/nmap', methods=['GET'])
 def nmap_api():
@@ -351,7 +362,7 @@ def droopescan_api():
                 contents['vulns'] = getVulnsFromExpoitDB('droopescan',contents['droopescan'])
                 return contents
             except:
-                return jsonify({})
+                return jsonify(contents)
         else:
             return jsonify(contents)
     else:
@@ -368,8 +379,6 @@ def joomscan_api():
         contents['vulns'] = []
 
         if (results):
-            # print("Get here true results")
-
             # Get path of reports
             path = '/root/python_tool/joomscan/reports/'
             try:
@@ -391,7 +400,6 @@ def joomscan_api():
             return contents
 
         else:
-            # print("Get here false results")
             return contents
     
     else:
@@ -400,18 +408,23 @@ def joomscan_api():
 @app.route('/api/v1/enumeration/cmseek', methods=['GET'])
 def cmseek_api():
     if 'url' in request.args:
-        results = getDataFromCmseek(request.args['url'])
+        results, folder = getDataFromCmseek(request.args['url'])
 
-        if (results):
+        if (results != "Can not get data from cmseek"):
             path = '/root/python_tool/CMSeeK/Result'
-            reportFolder = os.listdir(path)[0]
+            reportFolder = folder
             reportPath = os.path.join(path, reportFolder)
 
             with open(f"{reportPath}/cms.json",'r') as f:
                 contents = json.loads(f.read())
                 return contents
         else:
-            return contents
+            return {
+                "cms_id": "", 
+                "cms_name": "", 
+                "cms_url": "", 
+                "detection_param": "",
+            }
     else:
         return jsonify('Define url paramter')
     

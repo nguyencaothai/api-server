@@ -5,9 +5,6 @@ import os
 
 def getDataFromJoomscan(url):
     
-    # Change directory to joomscan folder
-    # sys.path.append('/root/python_tool/joomscan/')
-    #sys.path.append('/root/python_tool/joomscan')
     sys.path = []
     sys.path.append('/root/python_tool/joomscan/')
 

@@ -9,7 +9,8 @@ def getDataFromNmap(url, token):
     
     url = url[1: len(url)-1] if (url[0] == '.' and url[len(url)-1] == '.') else url[1:] if (url[0] == '.') else url[:len(url)-1] if (url[len(url)-1] == '.') else url
 
-    # url = url.split('/')[2].replace('/','')
+    if (url == ''):
+        return "Can not get data from nmap"
     try:
         ip = socket.gethostbyname(url)
     except:
