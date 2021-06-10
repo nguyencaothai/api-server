@@ -71,7 +71,7 @@ def whatweb_api():
             cookie = request.args['cookie']
         except:
             cookie = None
-           
+        print(request.args['url'])
         results = getDataFromWhatWeb(request.args['url'], cookie, request.args['token'])
 
         contents = {}
@@ -408,12 +408,9 @@ def joomscan_api():
 @app.route('/api/v1/enumeration/cmseek', methods=['GET'])
 def cmseek_api():
     if 'url' in request.args:
-        results, folder = getDataFromCmseek(request.args['url'])
-
+        # request.args['url'] auto decode
+        results, reportPath = getDataFromCmseek(request.args['url'])
         if (results != "Can not get data from cmseek"):
-            path = '/root/python_tool/CMSeeK/Result'
-            reportFolder = folder
-            reportPath = os.path.join(path, reportFolder)
 
             with open(f"{reportPath}/cms.json",'r') as f:
                 contents = json.loads(f.read())
