@@ -71,7 +71,6 @@ def whatweb_api():
             cookie = request.args['cookie']
         except:
             cookie = None
-        print(request.args['url'])
         results = getDataFromWhatWeb(request.args['url'], cookie, request.args['token'])
 
         contents = {}
@@ -81,7 +80,7 @@ def whatweb_api():
         if (results):
 
             reportName = 'whatweb_' + request.args['token'] + '.report'
-            reportPath = os.path.join( '/root/python_tool/whatweb_tool/', reportName)
+            reportPath = os.path.join( '/root/python_tool/whatweb_tool', reportName)
             
             with open(reportPath, 'r') as f:
                 data = xmltodict.parse(f.read())
