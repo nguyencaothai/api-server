@@ -1,5 +1,5 @@
 import flask
-from flask import Response, request, jsonify
+from flask import Response, request, jsonify, send_file
 import xml.etree.ElementTree as ET
 import re, os
 import json, xmltodict
@@ -8,6 +8,9 @@ import urllib.request
 
 # Update searchsploit tool
 from searchsploit_tool.searchsploitUpdate import update
+
+# Screenshot a websitef
+from screenshot_tool.screenshot_tool import take_screenshot
 
 # Modules for Exploit DB
 from searchsploit_tool.searchsploit_tool import getDataFromSearchsploit
@@ -496,6 +499,21 @@ def searchsploit_api():
     else:
         return jsonify('Define url paramter')
 
+@app.route('/api/v1/enumeration/screenshot', methods=['GET'])
+def screenshot_api():
+    if 'url' in request.args:
+        right_format = re.search('^(http|https)://', request.args['url'])
+        if (right_format):
+            try:
+                PATH = '/root/python_tool/screenshot_tool/'
+                image_file = PATH + request.args['token'] + '.png'
+                take_screenshot(request.args['url'], request.args['token'])
+                return send_file(image_file, mimetype='image/png')
+            except:
+                return jsonify("No picture")
+        else:
+            return jsonify("Please add 'http' or 'https' to url parameter")
+    return jsonify('Define url paramter')     
 
 if __name__ == "__main__":
     threading.Thread(target=update, args=()).start()
