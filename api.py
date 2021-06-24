@@ -2,7 +2,7 @@ import flask
 from flask import Response, request, jsonify, send_file
 import xml.etree.ElementTree as ET
 import re, os
-import json, xmltodict
+import json, xmltodict, time
 import threading
 import urllib.request
 
@@ -513,7 +513,7 @@ def screenshot_api():
                 return jsonify("No picture")
         else:
             return jsonify("Please add 'http' or 'https' to url parameter")
-    return jsonify('Define url paramter')     
+    return jsonify('Define url paramter')
 
 if __name__ == "__main__":
     threading.Thread(target=update, args=()).start()

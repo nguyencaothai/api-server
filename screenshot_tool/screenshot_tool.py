@@ -21,3 +21,4 @@ def take_screenshot(url, token):
     driver.set_window_size(full_page_size('Width'), full_page_size('Height'))
     time.sleep(5)
     driver.save_screenshot(PATH + token + '.png')
+    driver.quit()
