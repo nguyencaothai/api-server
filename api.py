@@ -369,6 +369,7 @@ def droopescan_api():
         if (results != "Can not get data from droopescan"):
             try:
                 contents['droopescan'] = json.loads(results.decode('utf-8'))
+                # contents['droopescan'] = results.decode('utf-8')
                 contents['vulns'] = getVulnsFromExpoitDB('droopescan',contents['droopescan'])
                 return contents
             except:

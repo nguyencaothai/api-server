@@ -35,7 +35,7 @@ def getDataFromCmseek(url, token):
         return "Can not get data from cmseek", None
     
     if (token in pids_of_token.keys()):
-        process = subprocess.Popen(['python','cmseek.py','-u',url,'--batch'], cwd='/root/python_tool/CMSeeK/', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(['python','cmseek.py', '-o', '-u',url,'--batch'], cwd='/root/python_tool/CMSeeK/', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         pids_of_token[token].append(process.pid)
         process.wait()
