@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import time
+import pids
 
 PATH = '/root/python_tool/screenshot_tool/'
 

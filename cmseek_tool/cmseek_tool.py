@@ -1,5 +1,6 @@
 import subprocess, re, os
 from tldextract import extract
+from pids import pids_of_token
 
 def init_result_dir(url):
     ### initiate log directory and stuffs
@@ -20,7 +21,7 @@ def init_result_dir(url):
         url = url.replace(r, '_')
     return url
 
-def getDataFromCmseek(url):
+def getDataFromCmseek(url, token):
 
     reportFolder = init_result_dir(url)
     path = '/root/python_tool/CMSeeK/Result'
@@ -32,9 +33,20 @@ def getDataFromCmseek(url):
 
     if (domain == ''):
         return "Can not get data from cmseek", None
+    
+    if (token in pids_of_token.keys()):
+        process = subprocess.Popen(['python','cmseek.py','-u',url,'--batch'], cwd='/root/python_tool/CMSeeK/', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    results = subprocess.run(['python','cmseek.py','-u',url,'--batch'], cwd='/root/python_tool/CMSeeK/', capture_output=True)
-    if (results.returncode != 1):
-        return (results.stdout, reportPath)
-    else:
-        return "Can not get data from cmseek", None
+        pids_of_token[token].append(process.pid)
+        process.wait()
+
+        if (token in pids_of_token.keys()):
+            pids_of_token[token].remove(process.pid)
+            re, err = process.communicate()
+            if (process.returncode != 1):
+                return re, reportPath
+            else:
+                return "Can not get data from cmseek", None
+        else:
+            return "Can not get data from cmseek", None
+    return "Can not get data from cmseek", None

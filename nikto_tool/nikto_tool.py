@@ -2,6 +2,7 @@ import subprocess
 import json
 import os
 from tldextract import extract
+from pids import pids_of_token
 
 def getDataFromNikto(url, token):
 
@@ -21,8 +22,20 @@ def getDataFromNikto(url, token):
     if "https://" in url:
         port = '443'
     
-    results = subprocess.run(['nikto','-h', url, '-p', port, '-Format','json', '-o', reportName, '-maxtime', '600s'], capture_output=True, cwd='/root/python_tool/nikto_tool/')
-    if (results.returncode != 1):
-        return True
-    else:
-        return False
+    if (token in pids_of_token.keys()):
+        process = subprocess.Popen(['nikto','-h', url, '-p', port, '-Format','json', '-o', reportName, '-maxtime', '600s'], cwd='/root/python_tool/nikto_tool/', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        pids_of_token[token].append(process.pid)
+        process.wait()
+
+        
+        if (token in pids_of_token.keys()):
+            pids_of_token[token].remove(process.pid)
+            re, err = process.communicate()
+            if (process.returncode != 1):
+                return True
+            else:
+                return False
+        else:
+            return False
+    return False

@@ -1,10 +1,11 @@
 import flask
 from flask import Response, request, jsonify, send_file
 import xml.etree.ElementTree as ET
-import re, os
+import re, os, signal
 import json, xmltodict, time
 import threading
 import urllib.request
+from pids import pids_of_token
 
 # Update searchsploit tool
 from searchsploit_tool.searchsploitUpdate import update
@@ -52,6 +53,15 @@ from nikto_tool.nikto_tool import getDataFromNikto
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
+
+@app.before_request
+def before_request_func():
+    try:
+        token = request.args['token']
+        if (token not in  pids_of_token.keys()):
+            pids_of_token[token] = []
+    except:
+        print("Pass")
 
 # Check whether url is available
 @app.route('/api/v1/enumeration/check_available', methods=['GET'])
@@ -170,8 +180,6 @@ def sublist3r_api():
 # Directories/files scanning
 @app.route('/api/v1/enumeration/gobuster', methods=['GET'])
 def gobuster_api():
-
-
     #Check whether requests have url parameter
     if 'url' in request.args:
         
@@ -185,8 +193,8 @@ def gobuster_api():
             cookie = ""
 
         if (rightFormat):
-            results_dirs = getDirsFromGobuster(request.args['url'], cookie)
-            results_files = getFilesFromGobuster(request.args['url'], cookie)
+            results_dirs = getDirsFromGobuster(request.args['url'], cookie, request.args['token'])
+            results_files = getFilesFromGobuster(request.args['url'], cookie, request.args['token'])
 
             results = {}
             results['files'] = []
@@ -352,7 +360,7 @@ def wpscan_api():
 def droopescan_api():
     if 'url' in request.args:
 
-        results = getDataFromDroopescan(request.args['url'])
+        results = getDataFromDroopescan(request.args['url'], request.args['token'])
         
         contents = {}
         contents['droopescan'] = {}
@@ -374,7 +382,7 @@ def droopescan_api():
 def joomscan_api():
     if 'url' in request.args:
 
-        results = getDataFromJoomscan(request.args['url'])
+        results = getDataFromJoomscan(request.args['url'], request.args['token'])
 
         contents = {}
         contents['joomscan'] = ""
@@ -411,7 +419,7 @@ def joomscan_api():
 def cmseek_api():
     if 'url' in request.args:
         # request.args['url'] auto decode
-        results, reportPath = getDataFromCmseek(request.args['url'])
+        results, reportPath = getDataFromCmseek(request.args['url'], request.args['token'])
         if (results != "Can not get data from cmseek"):
 
             with open(f"{reportPath}/cms.json",'r') as f:
@@ -514,6 +522,16 @@ def screenshot_api():
         else:
             return jsonify("Please add 'http' or 'https' to url parameter")
     return jsonify('Define url paramter')
+
+@app.route('/api/v1/enumeration/stop_all_tools', methods=['GET'])
+def kill_all_process():
+    token = request.args['token']
+    if (token in pids_of_token.keys()):
+        for pid in pids_of_token[token]:
+            os.kill(pid, signal.SIGKILL)
+        del pids_of_token[token]
+
+    return jsonify("OK")
 
 if __name__ == "__main__":
     threading.Thread(target=update, args=()).start()

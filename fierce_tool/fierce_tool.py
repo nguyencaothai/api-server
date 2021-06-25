@@ -1,6 +1,7 @@
 import subprocess
 import sys
 from tldextract import extract
+from pids import pids_of_token
 
 def getDataFromFierce(url, token):
 
@@ -11,9 +12,19 @@ def getDataFromFierce(url, token):
 
     # Delete duplicate file
     subprocess.run(['rm', reportName], cwd='/root/python_tool/fierce/')
+    if (token in pids_of_token.keys()):
+        process = subprocess.Popen(['perl','fierce.pl','-file', reportName,'-dns',url], cwd='/root/python_tool/fierce', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    results = subprocess.run(['perl','fierce.pl','-file', reportName,'-dns',url], cwd='/root/python_tool/fierce', capture_output=True)
-    if (results.returncode != 1):
-        return True
-    else:
+        pids_of_token[token].append(process.pid)
+        process.wait()
+
+        if (token in pids_of_token.keys()):
+            pids_of_token[token].remove(process.pid)
+            re, err = process.communicate()
+            if (process.returncode != 1):
+                return True
+            else:
+                return False
         return False
+
+    return False

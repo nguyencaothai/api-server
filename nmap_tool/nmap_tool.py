@@ -1,6 +1,7 @@
 import subprocess
 import socket
 from tldextract import extract
+from pids import pids_of_token
 
 def getDataFromNmap(url, token):
     #Convert domain to ip
@@ -21,9 +22,19 @@ def getDataFromNmap(url, token):
     subprocess.run(['rm', reportNameTXT, reportNameXML], cwd='/root/python_tool/nmap_tool')
 
     #Run nmap with related ip
-    results = subprocess.run(['nmap','-A','-sV','-T4','-oN', reportNameTXT,'--script','vuln', '-oX', reportNameXML,ip], capture_output=True, cwd='/root/python_tool/nmap_tool')
+    if (token in pids_of_token.keys()):
+        process = subprocess.Popen(['nmap','-A','-sV','-T4','-oN', reportNameTXT,'--script','vuln', '-oX', reportNameXML,ip], cwd='/root/python_tool/nmap_tool', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    if (results.returncode != 1):
-        return (results.stdout)
-    else:
+        pids_of_token[token].append(process.pid)
+        process.wait()
+
+        if (token in pids_of_token.keys()):
+            pids_of_token[token].remove(process.pid)
+            re, err = process.communicate()
+            if (process.returncode != 1):
+                return "Success"
+            else:
+                return "Can not get data from nmap"
         return "Can not get data from nmap"
+
+    return "Can not get data from nmap"
