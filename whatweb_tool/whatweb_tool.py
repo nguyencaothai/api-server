@@ -11,18 +11,20 @@ def getDataFromWhatWeb(url, cookie, token):
             process = subprocess.Popen(['whatweb','-a','3','--log-xml', reportName,'-t','10','--cookie',cookie,url], cwd='/root/python_tool/whatweb_tool', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         else:
             process = subprocess.Popen(['whatweb','-a','3','--log-xml', reportName,'-t','10',url], cwd='/root/python_tool/whatweb_tool', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        
-        pids_of_token[token].append(process.pid)
-        process.wait()
-        
-        if (token in pids_of_token.keys()):
-            pids_of_token[token].remove(process.pid)
-            re, err = process.communicate()
-            if (process.returncode != 1):
-                return True
+        try:
+            pids_of_token[token].append(process.pid)
+            process.wait()
+            
+            if (token in pids_of_token.keys()):
+                pids_of_token[token].remove(process.pid)
+                re, err = process.communicate()
+                if (process.returncode != 1):
+                    return True
+                else:
+                    return False
             else:
                 return False
-        else:
+        except:
             return False
             
     return False

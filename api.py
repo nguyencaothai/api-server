@@ -527,9 +527,15 @@ def screenshot_api():
 @app.route('/api/v1/enumeration/stop_all_tools', methods=['GET'])
 def kill_all_process():
     token = request.args['token']
+
+    # Wait all tools have gone to api-server
+    time.sleep(15)
+
     if (token in pids_of_token.keys()):
         for pid in pids_of_token[token]:
+            # Kill each tool related to token
             os.kill(pid, signal.SIGKILL)
+        # Delete token out of pids_of_token
         del pids_of_token[token]
 
     return jsonify("OK")

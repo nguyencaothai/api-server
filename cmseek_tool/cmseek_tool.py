@@ -37,16 +37,19 @@ def getDataFromCmseek(url, token):
     if (token in pids_of_token.keys()):
         process = subprocess.Popen(['python','cmseek.py', '-o', '-u',url,'--batch'], cwd='/root/python_tool/CMSeeK/', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        pids_of_token[token].append(process.pid)
-        process.wait()
+        try:
+            pids_of_token[token].append(process.pid)
+            process.wait()
 
-        if (token in pids_of_token.keys()):
-            pids_of_token[token].remove(process.pid)
-            re, err = process.communicate()
-            if (process.returncode != 1):
-                return re, reportPath
+            if (token in pids_of_token.keys()):
+                pids_of_token[token].remove(process.pid)
+                re, err = process.communicate()
+                if (process.returncode != 1):
+                    return re, reportPath
+                else:
+                    return "Can not get data from cmseek", None
             else:
                 return "Can not get data from cmseek", None
-        else:
+        except:
             return "Can not get data from cmseek", None
     return "Can not get data from cmseek", None
