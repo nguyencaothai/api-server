@@ -9,11 +9,11 @@ def getDataFromWpscan(url, cookie, token):
 
     if (token in pids_of_token.keys()):
         if (cookie != None):
-            process = subprocess.Popen(['wpscan','--no-banner','-e','ap,at,cb','--detection-mode','mixed','--plugins-detection','mixed','--url',url,'--cookie-string',cookie,'-t','10','-f','json','-o', reportName], cwd='/root/python_tool/wpscan_tool', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            process = subprocess.Popen(['wpscan', '--random-user-agent', '--no-banner','-e','ap,at,cb','--detection-mode','mixed','--plugins-detection','mixed','--url',url,'--cookie-string',cookie,'-t','10','-f','json','-o', reportName], cwd='/root/python_tool/wpscan_tool', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             # proces = subprocess.Popen(['wpscan','--no-banner','-e','ap,at,cb','--url',url,'--cookie-string',cookie,'-t','100','-f','json','-o','wpscan.json'],capture_output=True)
 
         else:
-            process = subprocess.Popen(['wpscan','--no-banner','-e','ap,at,cb','--detection-mode','mixed','--plugins-detection','mixed','--url',url,'-t','10','-f','json','-o', reportName], cwd='/root/python_tool/wpscan_tool', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            process = subprocess.Popen(['wpscan', '--random-user-agent', '--no-banner','-e','ap,at,cb','--detection-mode','mixed','--plugins-detection','mixed','--url',url,'-t','10','-f','json','-o', reportName], cwd='/root/python_tool/wpscan_tool', stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             # proces = subprocess.Popen(['wpscan','--no-banner','-e','ap,at,cb','--url',url,'-t','100','-f','json','-o','wpscan.json'],capture_output=True)
         try:
             pids_of_token[token].append(process.pid)
